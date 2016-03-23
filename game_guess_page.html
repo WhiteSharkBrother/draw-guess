@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no">
+    <title>你画我猜</title>
+</head>
+<style type="text/css">
+    body, p, input, h1, h2, h3, h4, h5, h6, ul, li, dl, dt, dd, form {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        vertical-align: middle;
+        font-weight: normal;
+    }
+
+    img {
+        border: 0;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        color: #000;
+        -webkit-user-select: none;
+        -webkit-text-size-adjust: none;
+        font: normal 16px/200% "微软雅黑", helvetica, arial;
+        text-align: left;
+    }
+
+    header, section, footer {
+        display: block;
+        margin: 0;
+        padding: 0
+    }
+
+    a {
+        text-decoration: none;
+        color: #444;
+    }
+
+    html, body {
+        height: 100%;
+        width: 100%;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    header {
+        background: #e03e3f;
+        padding: 5px;
+        color: #fff;
+        text-shadow: 1px 1px 0 #965e18;
+    }
+
+    header .logo {
+        text-align: center;
+        font-size: 1.0625rem;
+        color: #fff;
+    }
+
+    header .logo a {
+        color: #fff;
+    }
+
+    nav {
+        text-align: center;
+    }
+
+    nav a {
+        display: inline-block;
+        width: 25%;
+        text-align: center;
+        color: #cb524b;
+        font-size: 14px;
+        vertical-align: top;
+    }
+
+    #content {
+        position: relative;
+    }
+
+    #log {
+        height: 40px;
+        width: 98%;
+        margin: 0 auto;
+        font-size: 12px;
+        background: #fff;
+        border: 1px solid #ddd;
+        display: block;
+        margin-top: 10px;
+    }
+
+    #touchArea {
+        margin: 10px;
+        border: 1px solid #ccc;
+        height: 200px;
+        background: #fff;
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    #point {
+        width: 30px;
+        height: 30px;
+        overflow: hidden;
+        background: #f00;
+        position: absolute;
+        left: 50%;
+        margin-left: -15px;
+        top: 240px;
+        -webkit-border-radius: 30px;
+        -moz-border-radius: 30px;
+        border-radius: 30px;
+    }
+
+    #canvas {
+        background: #fff;
+    }
+</style>
+<body>
+<header>
+    <h1 class="logo"><a href="">你画我猜</a></h1>
+</header>
+<div id="content">
+    <canvas id="canvas"></canvas>
+</div>
+</body>
+<script src="/resource/js/zepto.min.js"></script>
+<script src="/resource/js/socket.io-1.4.5.js"></script>
+<script type="text/javascript">
+    (function () {
+        var isTouchPad = (/hp-tablet/gi).test(navigator.appVersion);
+        var hasTouch = 'ontouchstart' in window && !isTouchPad;
+        var touchStart = hasTouch ? 'touchstart' : 'mousedown';
+        var touchMove = hasTouch ? 'touchmove' : 'mousemove';
+        var touchEnd = hasTouch ? 'touchend' : 'mouseup';
+        var startX = 0;
+        var startY = 0;
+        var penWidth = 1;
+        var penColor = "#000";
+
+
+        //通用函数
+        var obj = function (id) {
+            return document.getElementById(id)
+        }
+
+
+        //创建canvas
+        canvT = obj("content").offsetTop;
+        canvL = obj("content").offsetLeft;
+
+        var canvas = obj("canvas");
+        canvas.width = document.body.clientWidth;
+        canvas.height = document.body.clientHeight - canvT - 63;
+
+        var context = canvas.getContext("2d");
+
+        //socket
+        canvas.socket = io.connect('http://localhost:3555/');
+        canvas.socket.on('drawed', function (data) {
+            return canvas.drawed(data);
+        });
+        canvas.drawed = function (point) {
+            draw(point.x, point.y, point.type, point.width, point.color);
+        };
+
+        //绘画
+        var draw = function (x, y, type, width, color) {
+            context.lineWidth = width;
+            context.strokeStyle = color;
+            context.lineCap = "round";
+            if (type === touchStart) {
+                context.beginPath();
+                context.moveTo(x - canvL, y - canvT);
+            } else if (type === touchMove) {
+                context.lineTo(x - canvL, y - canvT);
+                context.stroke();
+            } else {
+                context.closePath();
+            }
+        }
+
+    })();
+</script>
+</html>
